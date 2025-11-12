@@ -6,6 +6,7 @@ import suscripcionRoutes from "./routes/SuscripcionRoutes.js";
 import membresiaRoutes from "./routes/MembresiaRoutes.js";
 import pagoRoutes from "./routes/PagoRoutes.js";
 import axios from "axios";
+import gananciaRoutes from "./routes/GananciaRoutes.js";
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.get('/health', (req, res) => {
 app.use("/suscripciones", suscripcionRoutes);
 app.use("/membresias", membresiaRoutes);
 app.use("/pagos", pagoRoutes);
+app.use("/ganancias", gananciaRoutes);
 
 // Puerto desde .env
 const PORT = process.env.PORT || 4002;

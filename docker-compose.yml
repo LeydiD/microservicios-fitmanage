@@ -7,14 +7,15 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: fitmanage
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
-      timeout: 5s
-      retries: 5
+      timeout: 10s
+      retries: 10
+      start_period: 40s
 
   usuarios-service:
     build: 

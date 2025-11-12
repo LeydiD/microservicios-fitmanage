@@ -771,9 +771,6 @@ const Ganancias = () => {
                       <tr key={index}>
                         <td>
                           <div className="client-info">
-                            <div className="client-avatar">
-                              {item.cliente.charAt(0)}
-                            </div>
                             <span>{item.cliente}</span>
                           </div>
                         </td>

@@ -20,7 +20,7 @@ import ForgotPassword from "./components/ForgotPassword.jsx";
 import ResetPassword from "./components/ResetPassword.jsx";
 import Membresias from "./components/administrador/pages/Membresias.jsx";
 import Pagos from "./components/administrador/pages/Pagos.jsx";
-// import Ganancias from "./components/administrador/pages/Ganancias.jsx";
+ import Ganancias from "./components/administrador/pages/Ganancias.jsx";
 // import RegistrarAsistencia from "./components/cliente/pages/RegistrarAsistencia.jsx";
 // import Asistencias from "./components/cliente/pages/Asistencias.jsx";
 // import Rutinas from "./components/cliente/pages/Rutinas.jsx";
@@ -52,7 +52,7 @@ const App = () => {
               <Route path="clientes" element={<Clientes />} />
               {<Route path="membresias" element={<Membresias />} />}
               <Route path="registrar-pago" element={<Pagos />} />
-              {/* <Route path="ganancias" element={<Ganancias />} /> */}
+              { <Route path="ganancias" element={<Ganancias />} /> }
             </Route>
           </Route>
 
