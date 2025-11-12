@@ -52,12 +52,12 @@ async function obtenerUltimaSuscripcion(id_cliente) {
     const ultimaSuscripcion = await Suscripcion.findOne({
       where: { id_cliente },
       order: [["fecha_fin", "DESC"]],
-      include: [{ model: Membresia, as: "membresia" }],
+      include: [{ model: Membresium }],
     });
 
-    if (!ultimaSuscripcion) {
-      throw new NotFoundError("No se encontró ninguna membresía activa.");
-    }
+    // Si no hay suscripción, devolver null en lugar de lanzar excepción.
+    // Esto permite a los llamadores manejar el caso (p.ej. devolver listado sin membresía)
+    if (!ultimaSuscripcion) return null;
 
     return ultimaSuscripcion;
   } catch (error) {
@@ -68,6 +68,9 @@ async function obtenerUltimaSuscripcion(id_cliente) {
 async function verificarMembresiaExpirada(id_cliente) {
   try {
     const ultimaSuscripcion = await obtenerUltimaSuscripcion(id_cliente);
+
+    // Si no existe suscripción, consideramos que está expirada / no activa
+    if (!ultimaSuscripcion) return true;
 
     const hoy = new Date();
     const fechaFin = new Date(ultimaSuscripcion.fecha_fin);
@@ -87,7 +90,7 @@ async function obtenerClientesActivos() {
       where: {
         fecha_fin: { [Op.gte]: hoy }, // suscripción vigente
       },
-      include: [{ model: Membresia }],
+      include: [{ model: Membresium }],
     });
 
     // Obtener información de clientes via API
@@ -104,7 +107,7 @@ async function obtenerClientesActivos() {
             fecha_inicio: suscripcion.fecha_inicio,
             fecha_fin: suscripcion.fecha_fin,
             estado: suscripcion.estado,
-            membresia: suscripcion.membresia,
+            membresia: suscripcion.membresia || suscripcion.membresium ||null,
           },
         });
       } catch (error) {
@@ -125,33 +128,44 @@ async function obtenerUltimasPorClientes(clientesIds = []) {
   try {
     if (!Array.isArray(clientesIds) || clientesIds.length === 0) return [];
 
-    const promises = clientesIds.map(async (id) => {
-      try {
-        const ultima = await obtenerUltimaSuscripcion(id);
-        if (!ultima) return null;
-        const ultimaPlain = ultima.toJSON ? ultima.toJSON() : ultima;
-        const tipoMembresia =
-          ultimaPlain.membresia?.tipo || ultimaPlain.membresium?.tipo || null;
-        return {
-          id_cliente: ultimaPlain.id_cliente,
-          id_suscripcion: ultimaPlain.id_suscripcion,
-          fecha_inicio: ultimaPlain.fecha_inicio,
-          fecha_fin: ultimaPlain.fecha_fin,
-          id_membresia: ultimaPlain.id_membresia,
-          membresia: ultimaPlain.membresia || ultimaPlain.membresium || null,
-          tipo_membresia: tipoMembresia,
-        };
-      } catch (err) {
-        console.warn(
-          `Error obteniendo última suscripción para cliente ${id}:`,
-          err.message
-        );
-        return null;
-      }
+    // Normalizar IDs a números cuando sea posible para evitar problemas de comparación
+    const idsNum = clientesIds.map((c) => (isNaN(Number(c)) ? c : Number(c)));
+
+    // Obtener todas las suscripciones de los clientes pedidos, ordenadas por fecha_fin desc
+    const suscripciones = await Suscripcion.findAll({
+      where: { id_cliente: idsNum },
+      order: [
+        ["id_cliente", "ASC"],
+        ["fecha_fin", "DESC"],
+      ],
+      include: [{ model: Membresia }],
     });
 
-    const results = await Promise.all(promises);
-    return results.filter((r) => r !== null);
+    // Reducir a la última por cliente
+    const map = new Map();
+    for (const sus of suscripciones) {
+      const plain = sus.toJSON ? sus.toJSON() : sus;
+      const key = String(plain.id_cliente);
+      if (!map.has(key)) {
+        const tipoMembresia = plain.membresia?.tipo || plain.membresium?.tipo || null;
+        map.set(key, {
+          id_cliente: plain.id_cliente,
+          id_suscripcion: plain.id_suscripcion,
+          fecha_inicio: plain.fecha_inicio,
+          fecha_fin: plain.fecha_fin,
+          id_membresia: plain.id_membresia,
+          membresia: plain.membresia || plain.membresium || null,
+          tipo_membresia: tipoMembresia,
+        });
+      }
+    }
+
+    // Construir resultado en el mismo orden de entrada
+    const resultado = clientesIds
+      .map((c) => map.get(String(isNaN(Number(c)) ? c : Number(c))))
+      .filter((r) => r !== undefined && r !== null);
+
+    return resultado;
   } catch (error) {
     throw error;
   }

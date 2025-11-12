@@ -40,6 +40,10 @@ export async function ultima(req, res) {
   try {
     const { id } = req.params;
     const suscripcion = await SuscripcionService.obtenerUltimaSuscripcion(id);
+    if (!suscripcion) {
+      return res.status(404).json({ message: "No se encontró ninguna suscripción" });
+    }
+
     res.status(200).json(suscripcion);
   } catch (error) {
     res.status(error.statusCode || 500).json({

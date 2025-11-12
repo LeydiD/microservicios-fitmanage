@@ -1,10 +1,6 @@
 .cliente-menu {
   width: 250px;
-  background: linear-gradient(
-    to bottom,
-    #1a1a1a,
-    #0f0f0f
-  ); /* Igual que admin */
+  background: #1a1a1a;
   color: white;
   height: 100vh;
   display: flex;
@@ -12,6 +8,7 @@
   align-items: center;
   padding-top: 40px;
   padding-bottom: 40px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 .cliente-profile {
   display: flex;
@@ -134,24 +131,47 @@
 
 .menu button {
   width: 100%;
-  background-color: #333333;
-  color: ffffff;
+  background-color: #1a1a1a;
+  color: #ffffff;
   border: none;
-  padding: 10px;
+  padding: 6px 12px; /* top/bottom and left/right padding */
+  text-align: left; /* align button text to the left */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
   font-size: 14px;
   font-weight: bold;
   border-radius: 5px;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .menu button:hover {
-  background-color: #777;
+  background-color: #ffffff;
+  color: #000000; /* ensure readable contrast on hover */
 }
 
 .menu .active {
-  background-color: #a08f8f;
+  background-color: #ffffff;
+  color: #000000; /* ensure readable contrast when active */
 }
+
+/* Icon inside buttons: inherit the button color and size */
+.menu button .btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  color: inherit; /* ensure icon follows text color */
+}
+.menu button .btn-icon svg {
+  width: 18px;
+  height: 18px;
+  color: inherit;
+  fill: currentColor;
+}
+.menu button .btn-text { display: inline-block; }
 
 .logout-button {
   margin-top: 10%;
