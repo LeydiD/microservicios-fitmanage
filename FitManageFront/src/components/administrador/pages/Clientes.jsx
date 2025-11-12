@@ -41,13 +41,14 @@ const Clientes = () => {
     const query = searchQuery.toLowerCase();
     let filtrados = allClientes.filter(
       (cliente) =>
-        cliente.nombre.toLowerCase().includes(query) ||
-        cliente.DNI.includes(query)
+        (cliente.nombre || "").toLowerCase().includes(query) ||
+        (cliente.DNI || "").includes(query)
     );
 
     if (estadoFiltro !== "Todos") {
       filtrados = filtrados.filter(
-        (cliente) => cliente.estado.toLowerCase() === estadoFiltro
+        (cliente) =>
+          (cliente.estadoMembresia || "inactivo").toLowerCase() === estadoFiltro
       );
     }
 
@@ -65,13 +66,14 @@ const Clientes = () => {
     const query = searchQuery.toLowerCase();
     let filtrados = allClientes.filter(
       (cliente) =>
-        cliente.nombre.toLowerCase().includes(query) ||
-        cliente.DNI.includes(query)
+        (cliente.nombre || "").toLowerCase().includes(query) ||
+        (cliente.DNI || "").includes(query)
     );
 
     if (estado !== "Todos") {
       filtrados = filtrados.filter(
-        (cliente) => cliente.estado.toLowerCase() === estado
+        (cliente) =>
+          (cliente.estadoMembresia || "inactivo").toLowerCase() === estado
       );
     }
 
@@ -165,22 +167,26 @@ const Clientes = () => {
             <table className="table table-bordered table-striped">
               <thead className="table-light">
                 <tr>
-                  <th>DNI</th>
                   <th style={{ cursor: "pointer" }} onClick={ordenarPorNombre}>
                     Nombre {ordenAscendente ? "▲" : "▼"}
                   </th>
-                  <th>Email</th>
-                  <th>Teléfono</th>
+                  <th>Tipo Membresía</th>
+                  <th>Estado</th>
+                  <th>Días Restantes</th>
                   <th>Información</th>
                 </tr>
               </thead>
               <tbody>
                 {clientes.map((cliente, index) => (
                   <tr key={index}>
-                    <td>{cliente.DNI}</td>
                     <td>{cliente.nombre}</td>
-                    <td>{cliente.email}</td>
-                    <td>{cliente.telefono}</td>
+                    <td>{cliente.tipoMembresia || "Sin membresía"}</td>
+                    <td>
+                      <EstadoBadge
+                        estado={cliente.estadoMembresia || "inactivo"}
+                      />
+                    </td>
+                    <td>{cliente.diasRestantes ?? 0}</td>
                     <td>
                       <button
                         className="ver-btn"

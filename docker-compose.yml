@@ -7,9 +7,10 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: fitmanage
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
@@ -18,7 +19,7 @@ services:
       start_period: 40s
 
   usuarios-service:
-    build: 
+    build:
       context: ./usuarios-service
       dockerfile: Dockerfile
     container_name: usuarios_service
@@ -32,7 +33,7 @@ services:
         condition: service_healthy
 
   afiliaciones-service:
-    build: 
+    build:
       context: ./afiliaciones-service
       dockerfile: Dockerfile
     container_name: afiliaciones_service
@@ -46,7 +47,7 @@ services:
         condition: service_healthy
 
   notificaciones-service:
-    build: 
+    build:
       context: ./notificaciones-service
       dockerfile: Dockerfile
     container_name: notificaciones_service
@@ -70,7 +71,7 @@ services:
       - CONSUL_BIND_INTERFACE=eth0
 
   gateway:
-    build: 
+    build:
       context: ./api-gateway
       dockerfile: Dockerfile
     container_name: fitmanage_gateway
@@ -84,7 +85,7 @@ services:
       - consul
 
   frontend1:
-    build: 
+    build:
       context: ./FitManageFront
       dockerfile: Dockerfile
     container_name: fitmanage_frontend1

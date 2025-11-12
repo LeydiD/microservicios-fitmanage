@@ -1,6 +1,9 @@
 import {
-  listar as listarClientes, buscarPorCedula as buscarPCedula,
-  registrarCliente as registrarCliente, actualizarCliente as actualizarClienteS, actualizarContraseña as actualizarContraseñaCliente
+  listar as listarClientes,
+  buscarPorCedula as buscarPCedula,
+  registrarCliente as registrarCliente,
+  actualizarCliente as actualizarClienteS,
+  actualizarContraseña as actualizarContraseñaCliente,
 } from "../services/ClienteServices.js";
 import apiClient from "../utils/ApiClient.js";
 import jwt from "jsonwebtoken";
@@ -11,11 +14,72 @@ dotenv.config();
 
 export async function listar(req, res) {
   try {
+    // Obtener clientes desde la base de datos
     const clientes = await listarClientes();
-    res.json(clientes);
+
+    // Si no hay clientes, devolver lista vacía
+    if (!Array.isArray(clientes) || clientes.length === 0) {
+      return res.json([]);
+    }
+
+    const clientesIds = clientes.map((c) => c.DNI);
+    let ultimas = [];
+    try {
+      ultimas = await apiClient.obtenerUltimasSuscripciones(clientesIds);
+    } catch (err) {
+      console.warn(
+        "No se pudieron obtener últimas suscripciones desde afiliaciones:",
+        err.message || err
+      );
+      ultimas = [];
+    }
+
+    // Mapear por id_cliente
+    const mapUltimas = new Map();
+    for (const u of ultimas) {
+      // Normalizar campo id_cliente
+      const id = u.id_cliente ?? u.id_cliente;
+      mapUltimas.set(String(id), u);
+    }
+
+    const resultado = clientes.map((cliente) => {
+      const ultima = mapUltimas.get(String(cliente.DNI));
+      let tipoMembresia = null;
+      let estadoMembresia = "inactivo";
+      let diasRestantes = 0;
+
+      if (ultima && ultima.fecha_fin) {
+        const fechaFin = new Date(ultima.fecha_fin);
+        const hoy = new Date();
+        const diffMs = fechaFin - hoy;
+        diasRestantes =
+          diffMs > 0 ? Math.ceil(diffMs / (1000 * 60 * 60 * 24)) : 0;
+        estadoMembresia = diasRestantes > 0 ? "activo" : "inactivo";
+        tipoMembresia =
+          (ultima.membresia && ultima.membresia.tipo) ||
+          (ultima.membresium && ultima.membresium.tipo) ||
+          ultima.tipo_membresia ||
+          ultima.tipo ||
+          null;
+      }
+
+      return {
+        DNI: cliente.DNI,
+        nombre: cliente.nombre,
+        telefono: cliente.telefono,
+        email: cliente.email,
+        tipoMembresia,
+        estadoMembresia,
+        diasRestantes,
+      };
+    });
+
+    res.json(resultado);
   } catch (error) {
     console.error("Error al obtener clientes:", error);
-    res.status(500).json({ message: "Error al obtener clientes", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error al obtener clientes", error: error.message });
   }
 }
 
@@ -39,7 +103,9 @@ export async function registrar(req, res) {
     const { DNI, nombre, telefono, email, edad, peso, altura } = req.body;
 
     if (!DNI || !nombre || !telefono || !email || !edad || !peso || !altura) {
-      return res.status(400).json({ message: "Todos los campos son obligatorios" });
+      return res
+        .status(400)
+        .json({ message: "Todos los campos son obligatorios" });
     }
 
     const clienteExistente = await buscarPCedula(DNI);
@@ -48,11 +114,24 @@ export async function registrar(req, res) {
       return res.status(400).json({ message: "El cliente ya está registrado" });
     }
 
-    const nuevoCliente = await registrarCliente({ DNI, nombre, telefono, email, edad, peso, altura });
-    const token = jwt.sign({ DNI }, process.env.JWT_SECRET, { expiresIn: "72h" });
+    const nuevoCliente = await registrarCliente({
+      DNI,
+      nombre,
+      telefono,
+      email,
+      edad,
+      peso,
+      altura,
+    });
+    const token = jwt.sign({ DNI }, process.env.JWT_SECRET, {
+      expiresIn: "72h",
+    });
     const link = `${process.env.FRONTEND_URL}/crear-contrasena/${token}`;
 
-    await apiClient.enviarNotificacion(email, "Crea tu contraseña", `
+    await apiClient.enviarNotificacion(
+      email,
+      "Crea tu contraseña",
+      `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
           <h2 style="color: #333;">Hola ${nombre},</h2>
           <p style="font-size: 16px; color: #555;">
@@ -77,14 +156,14 @@ export async function registrar(req, res) {
             © ${new Date().getFullYear()} Gym Klinsmann. Todos los derechos reservados.
           </p>
         </div>
-      `);
+      `
+    );
     res.status(201).json(nuevoCliente);
   } catch (error) {
     console.error("Error al registrar cliente:", error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
-};
-
+}
 
 export async function actualizarCliente(req, res) {
   try {
@@ -95,14 +174,15 @@ export async function actualizarCliente(req, res) {
 
     res.json({
       message: "Cliente actualizado correctamente",
-      cliente: clienteActualizado
+      cliente: clienteActualizado,
     });
   } catch (error) {
     console.error("Error al actualizar cliente:", error);
-    res.status(500).json({ message: "Error al actualizar cliente", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error al actualizar cliente", error: error.message });
   }
 }
-
 
 export async function crearContraseña(req, res) {
   try {
@@ -121,4 +201,3 @@ export async function crearContraseña(req, res) {
     res.status(400).json({ message: error.message });
   }
 }
-

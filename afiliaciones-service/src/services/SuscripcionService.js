@@ -18,7 +18,7 @@ async function registrar(id_cliente, id_membresia) {
   try {
     // Verificar cliente via API Gateway
     await apiClient.verificarClienteExiste(id_cliente);
-    
+
     const membresia = await Membresia.findByPk(id_membresia);
     if (!membresia) {
       throw new NotFoundError("Membresia no encontrada");
@@ -52,6 +52,7 @@ async function obtenerUltimaSuscripcion(id_cliente) {
     const ultimaSuscripcion = await Suscripcion.findOne({
       where: { id_cliente },
       order: [["fecha_fin", "DESC"]],
+      include: [{ model: Membresia, as: "membresia" }],
     });
 
     if (!ultimaSuscripcion) {
@@ -86,14 +87,16 @@ async function obtenerClientesActivos() {
       where: {
         fecha_fin: { [Op.gte]: hoy }, // suscripción vigente
       },
-      include: [{ model: Membresia }]
+      include: [{ model: Membresia }],
     });
 
     // Obtener información de clientes via API
     const clientesConInfo = [];
     for (const suscripcion of suscripcionesActivas) {
       try {
-        const clienteInfo = await apiClient.obtenerInfoCliente(suscripcion.id_cliente);
+        const clienteInfo = await apiClient.obtenerInfoCliente(
+          suscripcion.id_cliente
+        );
         clientesConInfo.push({
           ...clienteInfo,
           suscripcion: {
@@ -101,15 +104,54 @@ async function obtenerClientesActivos() {
             fecha_inicio: suscripcion.fecha_inicio,
             fecha_fin: suscripcion.fecha_fin,
             estado: suscripcion.estado,
-            membresia: suscripcion.membresia
-          }
+            membresia: suscripcion.membresia,
+          },
         });
       } catch (error) {
-        console.warn(`No se pudo obtener info del cliente ${suscripcion.id_cliente}:`, error.message);
+        console.warn(
+          `No se pudo obtener info del cliente ${suscripcion.id_cliente}:`,
+          error.message
+        );
       }
     }
 
     return clientesConInfo;
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function obtenerUltimasPorClientes(clientesIds = []) {
+  try {
+    if (!Array.isArray(clientesIds) || clientesIds.length === 0) return [];
+
+    const promises = clientesIds.map(async (id) => {
+      try {
+        const ultima = await obtenerUltimaSuscripcion(id);
+        if (!ultima) return null;
+        const ultimaPlain = ultima.toJSON ? ultima.toJSON() : ultima;
+        const tipoMembresia =
+          ultimaPlain.membresia?.tipo || ultimaPlain.membresium?.tipo || null;
+        return {
+          id_cliente: ultimaPlain.id_cliente,
+          id_suscripcion: ultimaPlain.id_suscripcion,
+          fecha_inicio: ultimaPlain.fecha_inicio,
+          fecha_fin: ultimaPlain.fecha_fin,
+          id_membresia: ultimaPlain.id_membresia,
+          membresia: ultimaPlain.membresia || ultimaPlain.membresium || null,
+          tipo_membresia: tipoMembresia,
+        };
+      } catch (err) {
+        console.warn(
+          `Error obteniendo última suscripción para cliente ${id}:`,
+          err.message
+        );
+        return null;
+      }
+    });
+
+    const results = await Promise.all(promises);
+    return results.filter((r) => r !== null);
   } catch (error) {
     throw error;
   }
@@ -120,4 +162,5 @@ export default {
   obtenerUltimaSuscripcion,
   verificarMembresiaExpirada,
   obtenerClientesActivos,
+  obtenerUltimasPorClientes,
 };

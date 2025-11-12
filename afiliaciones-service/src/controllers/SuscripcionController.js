@@ -60,10 +60,32 @@ export async function diasRestantes(req, res) {
   }
 }
 
+export async function ultimasPorClientes(req, res) {
+  try {
+    const { clientes } = req.body || {};
+    if (!clientes || !Array.isArray(clientes)) {
+      return res
+        .status(400)
+        .json({ message: 'Se requiere un arreglo "clientes" en el body' });
+    }
+
+    const ultimas = await SuscripcionService.obtenerUltimasPorClientes(
+      clientes
+    );
+    res.status(200).json(ultimas);
+  } catch (error) {
+    console.error("Error en ultimasPorClientes:", error.message || error);
+    res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Error interno" });
+  }
+}
+
 export default {
   registrar,
   verificarActiva,
   obtenerPorCliente,
   ultima,
   diasRestantes,
+  ultimasPorClientes,
 };
