@@ -58,6 +58,20 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  
+  rutinas-service:
+    build:
+      context: ./rutinas-service
+      dockerfile: Dockerfile
+    container_name: rutinas_service
+    restart: always
+    env_file:
+      - ./rutinas-service/.env
+    ports:
+      - "4004:4004"
+    depends_on:
+      db:
+        condition: service_healthy
 
   consul:
     image: consul:1.15

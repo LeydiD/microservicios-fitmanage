@@ -1,6 +1,9 @@
 import React, { useState, useContext, useRef, useEffect } from "react";
 import "./Rutinas.css";
-import { generarRutina } from "../../../api/RutinaApi.js";
+import {
+  generarRutina,
+  obtenerRutinasPorCliente,
+} from "../../../api/RutinaApi.js";
 import { AuthContext } from "../../../context/AuthContext.jsx";
 import ReactMarkdown from "react-markdown";
 import { jsPDF } from "jspdf";
@@ -19,6 +22,35 @@ const Rutinas = () => {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const chatBoxRef = useRef(null);
   const inputRef = useRef(null);
+
+  // 🔹 Cargar historial previo del cliente
+  useEffect(() => {
+    const cargarHistorial = async () => {
+      try {
+        const historial = await obtenerRutinasPorCliente(user.DNI);
+
+        if (historial && historial.rutinas && historial.rutinas.length > 0) {
+          const mensajesFormateados = historial.rutinas.map((m) => ({
+            from: m.es_prompt ? "user" : "bot",
+            text: m.mensaje,
+            timestamp: new Date(m.fecha_generacion).toLocaleTimeString(),
+          }));
+
+          setMessages([
+            {
+              from: "bot",
+              text: `💬 Bienvenido nuevamente, ${historial.cliente}. Aquí tienes tu historial reciente:`,
+            },
+            ...mensajesFormateados,
+          ]);
+        }
+      } catch (err) {
+        console.error("No se pudo cargar el historial:", err.message);
+      }
+    };
+
+    cargarHistorial();
+  }, [user.DNI]);
 
   useEffect(() => {
     if (chatBoxRef.current) {
@@ -46,8 +78,13 @@ const Rutinas = () => {
     });
   };
 
+  const [sending, setSending] = useState(false);
+
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (sending || loading || !input.trim()) return;
+
+    setSending(true);
+    setLoading(true);
 
     const userMessage = {
       from: "user",
@@ -62,32 +99,79 @@ const Rutinas = () => {
     inputRef.current?.focus();
 
     try {
+      console.log("📤 Enviando mensaje a la IA...");
+
       const respuesta = await generarRutina({
         message: input,
         altura: user.altura,
         peso: user.peso,
         objetivo: user.objetivo,
         nombre: user.nombre,
+        id_cliente: user.DNI,
       });
+
+      console.log("✅ Respuesta completa del backend:", respuesta);
+
+      // 🔹 Extraer el mensaje correctamente
+      let mensajeBot = "";
+
+      if (typeof respuesta === "string") {
+        mensajeBot = respuesta;
+      } else if (respuesta.mensaje) {
+        mensajeBot = respuesta.mensaje;
+      } else if (respuesta.response) {
+        mensajeBot =
+          typeof respuesta.response === "string"
+            ? respuesta.response
+            : respuesta.response.mensaje || JSON.stringify(respuesta.response);
+      } else {
+        mensajeBot = "Rutina generada correctamente.";
+      }
+
+      console.log(
+        "📝 Mensaje del bot extraído (primeros 100 chars):",
+        mensajeBot.substring(0, 100)
+      );
+
+      if (!mensajeBot || mensajeBot.trim() === "") {
+        throw new Error("Respuesta vacía del servidor");
+      }
 
       const botMessage = {
         from: "bot",
-        text: respuesta.response,
+        text: mensajeBot,
         timestamp: new Date().toLocaleTimeString(),
       };
 
       setMessages([...newMessages, botMessage]);
     } catch (error) {
+      console.error("❌ Error en el flujo del chat:", error);
+
+      let errorMessage = "❌ Lo siento, ocurrió un error al generar la rutina.";
+
+      if (
+        error.message.includes("timeout") ||
+        error.message.includes("tardó demasiado")
+      ) {
+        errorMessage =
+          "⏱️ La IA está tardando más de lo esperado. Por favor, intenta con un mensaje más específico o corto.";
+      } else if (error.message.includes("Network Error")) {
+        errorMessage =
+          "🌐 Error de conexión. Verifica tu internet e intenta nuevamente.";
+      }
+
       setMessages([
         ...newMessages,
         {
           from: "bot",
-          text: "❌ Lo siento, ocurrió un error al generar la rutina. Por favor, intenta de nuevo.",
+          text: errorMessage,
           timestamp: new Date().toLocaleTimeString(),
         },
       ]);
+    } finally {
+      setSending(false);
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleKeyDown = (e) => {
@@ -97,21 +181,12 @@ const Rutinas = () => {
     }
   };
 
-  const limpiarMarkdown = (texto) => {
-    return texto
-      .replace(/[*_`>#-]+/g, "")
-      .replace(/\n{2,}/g, "\n")
-      .replace(/\n/g, "\n\n");
-  };
-
+  // 🔹 Función existente de PDF (no cambia)
   const handleDownloadPDF = () => {
-
     const doc = new jsPDF();
-
     const pageWidth = doc.internal.pageSize.width;
     const margin = 15;
     const contentWidth = pageWidth - 2 * margin;
-
 
     const addPageIfNeeded = (currentY, neededSpace = 20) => {
       if (currentY > 270) {
@@ -122,30 +197,15 @@ const Rutinas = () => {
     };
 
     const drawHeader = () => {
-
       doc.setFillColor(213, 0, 0);
       doc.rect(0, 0, pageWidth, 40, "F");
-
-    
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(24);
       doc.text("Rutina Personalizada", pageWidth / 2, 25, { align: "center" });
-
-    
-      doc.setFontSize(10);
-      const fecha = new Date().toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      });
-      doc.text(`Generado el ${fecha}`, pageWidth - margin, 10, {
-        align: "right",
-      });
     };
 
     const drawUserInfo = (y) => {
-    
       doc.setFillColor(245, 245, 245);
       doc.rect(margin, y - 10, contentWidth, 50, "F");
 
@@ -179,13 +239,11 @@ const Rutinas = () => {
 
     const drawRutina = (y) => {
       let currentY = y;
-
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
       doc.setTextColor(213, 0, 0);
       doc.text("Tu Rutina de Ejercicios", margin, currentY);
       currentY += 10;
-
 
       doc.setDrawColor(213, 0, 0);
       doc.setLineWidth(0.5);
@@ -196,60 +254,46 @@ const Rutinas = () => {
       doc.setFontSize(11);
       doc.setTextColor(51, 51, 51);
 
-     
       messages.forEach((msg, i) => {
         if (msg.from === "bot" && i > 0) {
           const lineasRutina = formatearTextoRutina(msg.text);
-
           lineasRutina.forEach((linea) => {
-      
             const lineasDivididas = doc.splitTextToSize(linea, contentWidth);
-
             lineasDivididas.forEach((lineaDividida) => {
               currentY = addPageIfNeeded(currentY);
-
-              // Detectar si es un título o subtítulo
               if (lineaDividida.trim().endsWith(":")) {
                 doc.setFont("helvetica", "bold");
                 currentY += 5;
               } else {
                 doc.setFont("helvetica", "normal");
               }
-
               doc.text(lineaDividida, margin, currentY);
               currentY += 7;
             });
           });
-
           currentY += 5;
         }
       });
-
       return currentY;
     };
 
     const drawFooter = () => {
       const totalPages = doc.internal.getNumberOfPages();
-
       for (let i = 1; i <= totalPages; i++) {
         doc.setPage(i);
-
         doc.setDrawColor(213, 0, 0);
         doc.setLineWidth(0.5);
         doc.line(margin, 280, pageWidth - margin, 280);
-
-   
         doc.setFontSize(8);
         doc.setTextColor(128, 128, 128);
         doc.text(
-          `Página ${i} de ${totalPages} | FitManage - Tu asistente personal de entrenamiento`,
+          `Página ${i} de ${totalPages} | FitManage - Tu asistente personal`,
           pageWidth / 2,
           285,
           { align: "center" }
         );
       }
     };
-
 
     drawHeader();
     let currentY = drawUserInfo(50);
@@ -304,10 +348,10 @@ const Rutinas = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Describe tu objetivo o pregunta sobre ejercicios específicos..."
+          placeholder="Describe tu objetivo o pregunta sobre ejercicios..."
           disabled={loading}
         />
-        <button onClick={handleSend} disabled={loading}>
+        <button type="button" onClick={handleSend} disabled={loading}>
           {loading ? (
             "Generando..."
           ) : (
