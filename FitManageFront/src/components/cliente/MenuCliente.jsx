@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../Button.jsx";
 import "./MenuCliente.css";
+import { FaHome, FaUserEdit, FaClipboardList, FaUserFriends, FaDumbbell, FaPlusCircle } from "react-icons/fa";
 import { AuthContext } from "../../context/AuthContext.jsx";
 import { useModal } from "../../context/ModalContext.jsx";
 import { cambiarAvatar } from "../../api/LoginApi.js";
@@ -267,19 +268,19 @@ const MenuCliente = ({ isOpen, setIsOpen }) => {
       </div>
       <nav className="menu">
         <Link to="/cliente" onClick={handleLinkClick}>
-          <Button text="Inicio" />
+          <Button text="Inicio" icon={FaHome} />
         </Link>
         <Link to="/cliente/actualizar" onClick={handleLinkClick}>
-          <Button text="Actualizar información" />
+          <Button text="Actualizar información" icon={FaUserEdit} />
         </Link>
         <Link to="/cliente/asistencias" onClick={handleLinkClick}>
-          <Button text="Asistencias" />
+          <Button text="Asistencias" icon={FaClipboardList} />
         </Link>
         <Link to="/cliente/rutinas" onClick={handleLinkClick}>
-          <Button text="Rutinas" />
+          <Button text="Rutinas" icon={FaDumbbell} />
         </Link>
         <Link to="/cliente/registrar-asistencia" onClick={handleLinkClick}>
-          <Button text="Registrar Asistencia" />
+          <Button text="Registrar Asistencia" icon={FaPlusCircle} />
         </Link>
       </nav>
       <button className="logout-button" onClick={handleLogout}>

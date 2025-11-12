@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../Button";
+import { FaHome, FaUserPlus, FaUsers, FaUserFriends, FaIdCardAlt, FaRegMoneyBillAlt, FaChartLine } from "react-icons/fa";
 import "./MenuAdmin.css";
 import { AuthContext } from "../../context/AuthContext.jsx";
 import { useModal } from "../../context/ModalContext.jsx";
@@ -268,22 +269,22 @@ const MenuAdmin = ({ isOpen, setIsOpen }) => {
       </div>
       <nav className="menu">
         <Link to="/admin" onClick={handleLinkClick}>
-          <Button text="Inicio" />
+          <Button text="Inicio" icon={FaHome} />
         </Link>
         <Link to="/admin/registro" onClick={handleLinkClick}>
-          <Button text="Registro" />
+          <Button text="Registro" icon={FaUserPlus} />
         </Link>
         <Link to="/admin/clientes" onClick={handleLinkClick}>
-          <Button text="Clientes" />
+          <Button text="Clientes" icon={FaUsers} />
         </Link>
         <Link to="/admin/membresias" onClick={handleLinkClick}>
-          <Button text="Membresías" />
+          <Button text="Membresías" icon={FaIdCardAlt} />
         </Link>
         <Link to="/admin/registrar-pago" onClick={handleLinkClick}>
-          <Button text="Registrar Pago" />
+          <Button text="Registrar Pago" icon={FaRegMoneyBillAlt} />
         </Link>
         <Link to="/admin/ganancias" onClick={handleLinkClick}>
-          <Button text="Ingresos" />
+          <Button text="Ingresos" icon={FaChartLine} />
         </Link>
       </nav>
       <button className="logout-button" onClick={handleLogout}>
