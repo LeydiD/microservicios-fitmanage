@@ -1,8 +1,11 @@
 {
   "name": "rutinas-service",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -10,9 +13,13 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.13.2",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "mysql2": "^3.15.1",
     "sequelize": "^6.37.7",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
