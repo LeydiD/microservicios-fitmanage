@@ -159,7 +159,7 @@
 
 .menu button {
   width: 100%;
-  background: #333333;
+  background: linear-gradient(to bottom, #1a1a1a, #0f0f0f);;
   color: #ffffff;
   border: none;
   padding: 12px;
@@ -172,7 +172,7 @@
 }
 
 .menu button:hover {
-  background-color: #4fc3f7;
+  background-color: #f2f3f4;
   color: #0d0d0d;
 }
 

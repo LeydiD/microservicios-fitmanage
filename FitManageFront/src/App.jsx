@@ -23,7 +23,7 @@ import Membresias from "./components/administrador/pages/Membresias.jsx";
 // import Ganancias from "./components/administrador/pages/Ganancias.jsx";
 import RegistrarAsistencia from "./components/cliente/pages/RegistrarAsistencia.jsx";
 import Asistencias from "./components/cliente/pages/Asistencias.jsx";
-// import Rutinas from "./components/cliente/pages/Rutinas.jsx";
+import Rutinas from "./components/cliente/pages/Rutinas.jsx";
 // import Notificaciones from "./components/cliente/pages/Notificaciones.jsx";
 // import EnviarNotificacion from "./components/administrador/pages/EnviarNotificacion.jsx";
 
@@ -66,7 +66,7 @@ const App = () => {
                 element={<RegistrarAsistencia />}
               />}
               { <Route path="asistencias" element={<Asistencias />} />}
-              {/* <Route path="rutinas" element={<Rutinas />} /> */}
+              {<Route path="rutinas" element={<Rutinas />} />}
               {/* <Route path="notificaciones" element={<Notificaciones />} /> */}
             </Route>
           </Route>

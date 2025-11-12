@@ -11,6 +11,7 @@ const GATEWAY = process.env.GATEWAY_URL || "http://localhost:4000";
 const http = axios.create({ baseURL: GATEWAY, timeout: 5000 });
 
 async function getUltimaSuscripcion(dni) {
+
   const { data } = await http.get(`/api/afiliaciones/suscripciones/cliente/${dni}/ultima`);
   return data;
 }
@@ -27,16 +28,16 @@ async function enviarCorreo(destinatario, asunto, mensaje) {
 async function registrarAsistencia(dni) {
   if (!dni) throw new BadRequestError("El dni del cliente es requerido");
   try {
-    const ultimaSuscripcion = await getUltimaSuscripcion(dni);
-    if (!ultimaSuscripcion) throw new NotFoundError("No se encontró la suscripción");
+   // const ultimaSuscripcion = await getUltimaSuscripcion(dni);
+    //if (!ultimaSuscripcion) throw new NotFoundError("No se encontró la suscripción");
 
-    const hoyDate = new Date();
-    const hoy = format(hoyDate, "yyyy-MM-dd");
-    const fin = new Date(ultimaSuscripcion.fecha_fin);
+    //const hoyDate = new Date();
+    const hoy = format(new Date(), "yyyy-MM-dd");
+    //const fin = new Date(ultimaSuscripcion.fecha_fin);
 
-    const yaRegistro = await verSiYaRegistroAsistencia(dni, hoy);
-    if (yaRegistro) throw new Conflict("Ya registró asistencia hoy.");
-    if (hoyDate > fin) throw new Conflict("No cuenta con membresía activa");
+    //const yaRegistro = await verSiYaRegistroAsistencia(dni, hoy);
+    //if (yaRegistro) throw new Conflict("Ya registró asistencia hoy.");
+   // if (hoyDate > fin) throw new Conflict("No cuenta con membresía activa");
 
     const asistencia = await Asistencia.create({
       fecha: hoy,
