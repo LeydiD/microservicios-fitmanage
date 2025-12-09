@@ -2,6 +2,11 @@ import express from "express";
 import dotenv from "dotenv";
 import axios from "axios";
 import notificacionRoutes from "./routes/notificaciones.js";
+import db, { testConnection, createTables } from "./db/db.js";
+import ClienteNotificacion from "./models/ClienteNotificacion.js";
+import Notificacion from "./models/Notificacion.js";
+import TipoNotificacion from "./models/TipoNotificacion.js";
+import NotificacionService from "./services/NotificacionService.js";
 
 dotenv.config();
 
@@ -44,9 +49,24 @@ async function registerInConsul() {
   }
 }
 
-app.listen(PORT, () => {
-  console.log(`Microservicio Notificaciones corriendo en puerto ${PORT}`);
-  
-  // Registrar en Consul después de 5 segundos
-  setTimeout(registerInConsul, 5000);
-});
+// Probar conexión a la BD y levantar servidor
+async function init() {
+    try {
+        await testConnection(); // Verifica conexión
+        await createTables(); // Crea tablas si no existen
+
+       //escuchar puerto 
+       app.listen(PORT, () => {
+      console.log(`Microservicio Notificaciones corriendo en puerto ${PORT}`);
+      
+      // Registrar en Consul después de 5 segundos
+      setTimeout(registerInConsul, 5000);
+    });
+    } catch (error) {
+        console.error("Error iniciando el microservicio de Suscripciones:", error);
+    }
+}
+
+init();
+
+//NotificacionService.crearNotificacionGeneral("General prueba", "msj", 2 );
