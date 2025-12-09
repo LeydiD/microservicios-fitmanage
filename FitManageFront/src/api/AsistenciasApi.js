@@ -1,4 +1,4 @@
-const API_URL = `${import.meta.env.VITE_BACKEND_URL}/asistencia`;
+const API_URL = `${import.meta.env.VITE_BACKEND_URL}/asistencias/asistencia`;
 
 export const registrarAsistencia = async () => {
   try {
