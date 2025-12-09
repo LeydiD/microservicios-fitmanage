@@ -89,9 +89,9 @@ const Membresias = () => {
       const nueva = await crearMembresia(nuevaMembresia);
       setMembresias([...membresias, nueva]);
       handleCloseModal();
-      showModal("Guardado correctamente", "La membresía se agregó con éxito.");
+      showModal("Éxito", "La membresía se agregó con éxito.", "success");
     } catch (error) {
-      showModal("Error al guardar la membresía", error.message);
+      showModal("Error", error.message || "Error al guardar la membresía", "error");
     }
   };
 
@@ -132,12 +132,9 @@ const Membresias = () => {
       );
 
       setModalEditarVisible(false);
-      showModal(
-        "Actualización exitosa",
-        "Membresía actualizada correctamente."
-      );
+      showModal("Éxito", "Membresía actualizada correctamente.", "success");
     } catch (error) {
-      showModal("Error al actualizar", error.message);
+      showModal("Error", "Error al actualizar membresia" || error.message, "error");
     }
   };
 
@@ -152,14 +149,11 @@ const Membresias = () => {
       setMembresias((prev) =>
         prev.filter((m) => m.id_membresia !== membresiaAEliminar.id_membresia)
       );
-      showModal(
-        "Membresía eliminada",
-        "La membresía fue eliminada exitosamente."
-      );
+      showModal("Exito", "La membresía fue eliminada exitosamente.", "success");
       setModalConfirmacionVisible(false);
       setMembresiaAEliminar(null);
     } catch (error) {
-      showModal("Error al eliminar", error.message);
+      showModal("Error", "Error al eliminar membresia" || error.message, "error");
       setModalConfirmacionVisible(false);
     }
   };

@@ -2,6 +2,8 @@ import React, { useState, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./Login.css";
 import { login } from "../api/LoginApi";
+import { obtenerFinSuscripcion } from "../api/ClienteApi";
+
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { AuthContext } from "../context/AuthContext";
 import LoginAnimation from "./LoginAnimation";
@@ -27,36 +29,51 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const data = await login({ DNI, contraseña });
-    setUser(data.usuario);
-    setRole(data.role);
-    localStorage.setItem("role", data.role);
-    localStorage.setItem("DNI", data.usuario.DNI);
-    localStorage.setItem("user", JSON.stringify(data.usuario));
+    try {
+      const data = await login({ DNI, contraseña });
+      setUser(data.usuario);
+      setRole(data.role);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("DNI", data.usuario.DNI);
+      localStorage.setItem("user", JSON.stringify(data.usuario));
 
-    if (
-      data.role.toLowerCase() === "administrador" ||
-      data.role.toLowerCase() === "cliente"
-    ) {
-      setUserRole(data.role);
-      setShowAnimation(true);
+      if (
+        data.role.toLowerCase() === "administrador" ||
+        data.role.toLowerCase() === "cliente"
+      ) {
+        if (data.role.toLowerCase() === "cliente") {
+          try {
+            const suscripcion = await obtenerFinSuscripcion(data.usuario.DNI);
+            const fechaFin = new Date(suscripcion.fecha_fin);
+            const hoy = new Date();
 
-      setTimeout(() => {
-        if (desde === "/registrar-asistencia") {
-          navigate("/registrar-asistencia", { replace: true });
-        } else {
-          navigate("/", { replace: true });
+            if (fechaFin < hoy) {
+              throw new Error("Tu membresía ha expirado. Renueva para ingresar.");
+            }
+          } catch (err) {
+            // Si falla obtenerFinSuscripcion (404) o la fecha es pasada
+            throw new Error(err.message === "Cliente no encontrado" ? "Tu membresía ha expirado. Renueva para ingresar." : err.message);
+          }
         }
-      }, 1500);
+
+        setUserRole(data.role);
+        setShowAnimation(true);
+
+        setTimeout(() => {
+          if (desde === "/registrar-asistencia") {
+            navigate("/registrar-asistencia", { replace: true });
+          } else {
+            navigate("/", { replace: true });
+          }
+        }, 1500);
+      }
+    } catch (error) {
+      setMensaje(error.message);
+      setTimeout(() => setMensaje(""), 3000);
     }
-  } catch (error) {
-    setMensaje(error.message);
-    setTimeout(() => setMensaje(""), 3000);
-  }
-};
+  };
 
 
   if (showAnimation) {

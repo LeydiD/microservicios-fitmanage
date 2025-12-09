@@ -46,6 +46,20 @@ services:
       db:
         condition: service_healthy
 
+  asistencias-service:
+    build:
+      context: ./asistencias-service
+      dockerfile: Dockerfile
+    container_name: asistencias_service
+    restart: always
+    env_file:
+      - ./asistencias-service/.env
+    ports:
+      - "4003:4003"
+    depends_on:
+      db:
+        condition: service_healthy
+
   notificaciones-service:
     build:
       context: ./notificaciones-service
@@ -59,7 +73,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-  
+
   rutinas-service:
     build:
       context: ./rutinas-service

@@ -55,8 +55,8 @@ export async function ultima(req, res) {
 export async function diasRestantes(req, res) {
   try {
     const { id } = req.params;
-    // Esta función necesita ser implementada en el service
-    res.status(501).json({ message: "Función no implementada aún" });
+    const dias = await SuscripcionService.calcularDiasRestantes(id);
+    res.status(200).json({ dias });
   } catch (error) {
     res.status(error.statusCode || 500).json({
       message: error.message || "Error interno del servidor",

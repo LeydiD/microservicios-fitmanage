@@ -1,4 +1,4 @@
-const API_URL = `${import.meta.env.VITE_BACKEND_URL}/asistencias/asistencia`;
+const API_URL = `${import.meta.env.VITE_BACKEND_URL}/asistencias/asistencias`;
 
 export const registrarAsistencia = async () => {
   try {
@@ -17,8 +17,17 @@ export const registrarAsistencia = async () => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Error al registrar asistencia");
+      let message = "Error al registrar asistencia";
+      try {
+        const errorData = await response.json();
+        message = errorData?.message || message;
+      } catch (_) {
+        try {
+          const text = await response.text();
+          if (text) message = text;
+        } catch (_) {}
+      }
+      throw new Error(message);
     }
 
     return await response.json();
@@ -50,4 +59,3 @@ export async function obtenerAsistenciasSemanal(dni) {
     throw new Error("Error al obtener asistencias semanales: " + error.message);
   }
 }
-

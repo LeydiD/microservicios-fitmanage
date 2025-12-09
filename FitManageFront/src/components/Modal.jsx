@@ -11,18 +11,21 @@ const Modal = ({ title, body, show, onClose, onCancel, type = "info" }) => {
     error: "rgb(241, 110, 93)",
     success: "#d1e7dd",
     info: "#cfe2ff",
+    details: "#cfe2ff",
   };
 
   const textColors = {
     error: "#842029",
     success: "#0f5132",
     info: "#084298",
+    details: "#084298",
   };
 
   const icons = {
     error: <FaExclamationCircle style={{ marginRight: "8px" }} />,
     success: <FaCheckCircle style={{ marginRight: "8px" }} />,
     info: <FaInfoCircle style={{ marginRight: "8px" }} />,
+    details: <FaInfoCircle style={{ marginRight: "8px" }} />,
   };
 
   const handleCancel = () => {
@@ -124,10 +127,10 @@ const Modal = ({ title, body, show, onClose, onCancel, type = "info" }) => {
           </div>
 
           {type === "info" && (
-            <div 
-              className="modal-footer" 
-              style={{ 
-                display: "flex", 
+            <div
+              className="modal-footer"
+              style={{
+                display: "flex",
                 justifyContent: "flex-end",
                 padding: "16px 20px",
                 borderTop: "1px solid #dee2e6"

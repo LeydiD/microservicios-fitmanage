@@ -7,11 +7,11 @@ import {
 } from "react-router-dom";
 import Login from "./components/Login.jsx";
 import AdminLayout from "./components/administrador/AdminLayout.jsx";
-// import InicioAdmin from "./components/administrador/pages/Inicio.jsx";
+import InicioAdmin from "./components/administrador/pages/Inicio.jsx";
 import Registro from "./components/administrador/pages/Registro.jsx";
 import Clientes from "./components/administrador/pages/Clientes.jsx";
 import ClienteLayout from "./components/cliente/ClienteLayout.jsx";
-// import InicioCliente from "./components/cliente/Inicio.jsx";
+import InicioCliente from "./components/cliente/Inicio.jsx";
 import ActualizarInformacion from "./components/cliente/pages/ActualizarInfo.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import CrearContraseña from "./components/CrearContraseña.jsx";
@@ -43,7 +43,7 @@ const App = () => {
           {/* Rutas para Administración */}
           <Route element={<RutaProtegida rolRequerido="Administrador" />}>
             <Route path="/admin" element={<AdminLayout />}>
-              {/* <Route index element={<InicioAdmin />} /> */}
+              {<Route index element={<InicioAdmin />} />}
               {/* <Route
                 path="enviar-notificacion"
                 element={<EnviarNotificacion />}
@@ -59,9 +59,12 @@ const App = () => {
           {/* Rutas para Clientes */}
           <Route element={<RutaProtegida rolRequerido="Cliente" />}>
             <Route path="/cliente" element={<ClienteLayout />}>
-              {/* <Route index element={<InicioCliente />} /> */}
+              {<Route index element={<InicioCliente />} />}
               <Route path="actualizar" element={<ActualizarInformacion />} />
-              <Route path="registrar-asistencia" element={<RegistrarAsistencia />} />
+              <Route
+                path="registrar-asistencia"
+                element={<RegistrarAsistencia />}
+              />
               <Route path="asistencias" element={<Asistencias />} />
               <Route path="rutinas" element={<Rutinas />} />
               {/* <Route path="notificaciones" element={<Notificaciones />} /> */}

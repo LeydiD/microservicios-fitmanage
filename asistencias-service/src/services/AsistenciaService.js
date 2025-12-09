@@ -5,7 +5,7 @@ import Asistencia from "../models/Asistencia.js";
 import { startOfWeek, addDays, format } from "date-fns";
 
 // Base del API Gateway
-const GATEWAY = process.env.GATEWAY_URL || "http://localhost:4000";
+const GATEWAY = process.env.API_GATEWAY_URL || "http://localhost:4000";
 
 // Cliente axios con timeout básico
 const http = axios.create({ baseURL: GATEWAY, timeout: 5000 });

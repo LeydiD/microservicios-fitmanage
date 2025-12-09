@@ -52,7 +52,7 @@ async function obtenerUltimaSuscripcion(id_cliente) {
     const ultimaSuscripcion = await Suscripcion.findOne({
       where: { id_cliente },
       order: [["fecha_fin", "DESC"]],
-      include: [{ model: Membresium }],
+      include: [{ model: Membresia }],
     });
 
     // Si no hay suscripción, devolver null en lugar de lanzar excepción.
@@ -90,7 +90,7 @@ async function obtenerClientesActivos() {
       where: {
         fecha_fin: { [Op.gte]: hoy }, // suscripción vigente
       },
-      include: [{ model: Membresium }],
+      include: [{ model: Membresia }],
     });
 
     // Obtener información de clientes via API
@@ -107,7 +107,7 @@ async function obtenerClientesActivos() {
             fecha_inicio: suscripcion.fecha_inicio,
             fecha_fin: suscripcion.fecha_fin,
             estado: suscripcion.estado,
-            membresia: suscripcion.membresia || suscripcion.membresium ||null,
+            membresia: suscripcion.membresia || suscripcion.membresium || null,
           },
         });
       } catch (error) {
@@ -171,10 +171,32 @@ async function obtenerUltimasPorClientes(clientesIds = []) {
   }
 }
 
+async function calcularDiasRestantes(id_cliente) {
+  try {
+    const ultimaSuscripcion = await obtenerUltimaSuscripcion(id_cliente);
+    if (!ultimaSuscripcion) return 0;
+
+    const fechaFin = new Date(ultimaSuscripcion.fecha_fin);
+    const hoy = new Date();
+
+    // Resetear horas para cálculo limpio de días
+    fechaFin.setHours(0, 0, 0, 0);
+    hoy.setHours(0, 0, 0, 0);
+
+    const diferenciaTiempo = fechaFin - hoy;
+    const diferenciaDias = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
+
+    return diferenciaDias > 0 ? diferenciaDias : 0;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export default {
   registrar,
   obtenerUltimaSuscripcion,
   verificarMembresiaExpirada,
   obtenerClientesActivos,
   obtenerUltimasPorClientes,
+  calcularDiasRestantes,
 };

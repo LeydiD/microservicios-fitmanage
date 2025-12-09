@@ -113,7 +113,8 @@ const Clientes = () => {
           <p>
             <strong>Altura:</strong> {data.altura} m
           </p>
-        </div>
+        </div>,
+        "details"
       );
     } catch (error) {
       showModal(
