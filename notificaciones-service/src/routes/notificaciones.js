@@ -6,6 +6,7 @@ const router = Router();
 
 router.post("/email", enviarCorreoController);
 router.post("/", NotificacionController.crearNotificacion);
+router.post("/asistencia", NotificacionController.crearNotificacionAsistencia);
 router.get("/:dni", NotificacionController.obtenerNotificaciones);
 router.patch("/:id_notificacion", NotificacionController.cambiarEstado);
 router.delete(

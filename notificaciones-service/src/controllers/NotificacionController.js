@@ -59,6 +59,18 @@ async function cambiarEstado(req, res) {
   }
 }
 
+async function crearNotificacionAsistencia(req, res) {
+  try {
+    const { dni, fecha } = req.body;
+    const notificacion = await NotificacionService.crearNotificacionAsistencia(dni, fecha);
+    res.status(201).json(notificacion);
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      message: error.message || "Error interno del servidor",
+    });
+  }
+}
+
 async function eliminarNotificacionUsuario(req, res) {
   try {
     await NotificacionService.eliminarNotificacionUsuario(
@@ -76,5 +88,6 @@ export default {
   crearNotificacion,
   obtenerNotificaciones,
   cambiarEstado,
+  crearNotificacionAsistencia,
   eliminarNotificacionUsuario,
 };

@@ -65,6 +65,37 @@ async function crearNoficacionEvento(titulo, mensaje) {
   }
 }
 
+async function crearNotificacionAsistencia(dni, fecha) {
+  if (!dni) throw new BadRequestError("El DNI es requerido");
+  try {
+    // Crear la notificación general de asistencia
+    const notificacion = await Notificacion.create({
+      titulo: "Asistencia Registrada",
+      mensaje: `Tu asistencia del ${fecha} fue registrada exitosamente.`,
+      fecha_envio: new Date(),
+      id_tipo_notificacion: 3, // Tipo asistencia
+    });
+
+    if (!notificacion) {
+      throw new InternalServerError("Error al crear la notificación");
+    }
+
+    // Crear la relación con el cliente
+    const notiUsuario = await NotificacionUsuarioService.crearNotiUsuario(
+      notificacion.id_notificacion,
+      dni
+    );
+
+    if (!notiUsuario) {
+      throw new InternalServerError("No se pudo crear la notificación para el usuario");
+    }
+
+    return notificacion;
+  } catch (error) {
+    throw error;
+  }
+}
+
 async function eliminarNotificacionUsuario(id) {
   if (!id) throw new BadRequestError("El id es vacío");
   try {
@@ -80,6 +111,7 @@ async function eliminarNotificacionUsuario(id) {
 export default {
   crearNotificacionGeneral,
   crearNoficacionEvento,
+  crearNotificacionAsistencia,
   eliminarNotificacionUsuario,
 };
 

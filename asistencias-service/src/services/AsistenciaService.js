@@ -21,7 +21,7 @@ async function getCliente(dni) {
 }
 
 async function enviarCorreo(destinatario, asunto, mensaje) {
-  await http.post(`/api/notificaciones/email`, { destinatario, asunto, mensaje });
+  await http.post(`/api/notificaciones/notificaciones/email`, { destinatario, asunto, mensaje });
 }
 
 async function registrarAsistencia(dni) {
@@ -43,6 +43,16 @@ async function registrarAsistencia(dni) {
       dni_cliente: dni,
     });
     if (!asistencia) throw new InternalServerError("No se pudo crear la asistencia");
+
+    // Crear notificación de asistencia en la base de datos
+    try {
+      await http.post(`/api/notificaciones/notificaciones/asistencia`, {
+        dni: dni,
+        fecha: hoy
+      });
+    } catch (e) {
+      console.warn("No se pudo crear la notificación de asistencia:", e.message);
+    }
 
     // Notificación por correo (si hay email disponible)
     try {

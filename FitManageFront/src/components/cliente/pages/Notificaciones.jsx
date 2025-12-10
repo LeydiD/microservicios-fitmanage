@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import "./Notificaciones.css";
-import { FaCheckCircle, FaRegCircle, FaTrash } from "react-icons/fa";
+import { FaCheckCircle, FaRegCircle, FaTrash, FaBell, FaCalendar, FaExclamationTriangle } from "react-icons/fa";
 import { AuthContext } from "../../../context/AuthContext.jsx";
 import { useModal } from "../../../context/ModalContext.jsx";
 import {
@@ -13,7 +13,7 @@ const opciones = [
   { value: "todos", label: "Todos" },
   { value: "asistencias", label: "Asistencias" },
   { value: "eventos", label: "Eventos" },
-  { value: "vencimiento", label: "Vencim. Membresía" },
+  { value: "vencimiento", label: "Vencimiento" },
 ];
 
 const filtroMap = {
@@ -35,7 +35,7 @@ const Notificaciones = () => {
         .then(setNotificaciones)
         .catch(() => setNotificaciones([]));
 
-      // Consulta periódica cada 10 segundos para ver si hay nuevas notificaciones
+      // Consulta periódica cada 10 segundos
       interval = setInterval(() => {
         obtenerNotificacionesPorDNI(user.DNI)
           .then(setNotificaciones)
@@ -45,19 +45,14 @@ const Notificaciones = () => {
     return () => clearInterval(interval);
   }, [user]);
 
-  useEffect(() => {
-    console.log("Notificaciones recibidas:", notificaciones); // Verifica que tengan ID
-  }, [notificaciones]);
-
   const notificacionesFiltradas =
     filtro === "todos"
       ? notificaciones
       : notificaciones.filter(
-          (n) => (n.etiqueta || "").toLowerCase() === filtroMap[filtro]
-        );
+        (n) => (n.etiqueta || "").toLowerCase() === filtroMap[filtro]
+      );
 
   const notificacionesOrdenadas = [...notificacionesFiltradas].sort((a, b) => {
-    // Los no leídos (estado === false) primero
     if (a.estado === b.estado) return 0;
     return a.estado ? 1 : -1;
   });
@@ -88,20 +83,42 @@ const Notificaciones = () => {
           await eliminarNotificacion(id);
           setNotificaciones((prev) => prev.filter((n) => n.id !== id));
         } catch (e) {
-          console.error("Error al eliminar:", e);
           showModal("Error", "No se pudo eliminar la notificación", "error");
         }
       }
     );
   };
 
+  const getIconoPorTipo = (etiqueta) => {
+    const tipo = (etiqueta || "").toLowerCase();
+    switch (tipo) {
+      case "asistencia":
+        return <FaCheckCircle className="notif-icon-type" />;
+      case "evento":
+        return <FaBell className="notif-icon-type" />;
+      case "vencimiento":
+        return <FaExclamationTriangle className="notif-icon-type" />;
+      default:
+        return <FaCalendar className="notif-icon-type" />;
+    }
+  };
+
+  const noLeidas = notificaciones.filter(n => !n.estado).length;
+
   return (
     <div className="notificaciones-bg">
-      <div className="notificaciones-container">
-        <div className="notificaciones-header">
-          <h2>Notificaciones</h2>
+      <div className="notificaciones-container-modern">
+        <div className="notif-header-modern">
+          <div className="notif-title-section">
+            <div>
+              <h1 className="notif-title">Notificaciones</h1>
+              {noLeidas > 0 && (
+                <p className="notif-subtitle">{noLeidas} sin leer</p>
+              )}
+            </div>
+          </div>
           <select
-            className="notificaciones-filtro"
+            className="notif-filter-modern"
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
           >
@@ -112,77 +129,70 @@ const Notificaciones = () => {
             ))}
           </select>
         </div>
-        <div className="notificaciones-tabla-container">
-          <table className="notificaciones-tabla">
-            <thead>
-              <tr>
-                <th>Título</th>
-                <th>Mensaje</th>
-                <th>Etiqueta</th>
-                <th>Leído</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {notificacionesOrdenadas.length === 0 ? (
-                <tr>
-                  <td colSpan={5} style={{ textAlign: "center", color: "#888" }}>
-                    No se encontraron notificaciones.
-                  </td>
-                </tr>
-              ) : (
-                notificacionesOrdenadas.map((n) => (
-                  <tr
-                    key={n.id}
-                    className={
-                      n.estado ? "notificacion-leida" : "notificacion-no-leida"
-                    }
-                  >
-                    <td>{n.titulo}</td>
-                    <td>{n.mensaje}</td>
-                    <td>
-                      <span
-                        className={`etiqueta etiqueta-${(
-                          n.etiqueta || ""
-                        ).toLowerCase()}`}
-                      >
+
+        <div className="notif-list-container">
+          {notificacionesOrdenadas.length === 0 ? (
+            <div className="notif-empty-state">
+              <FaBell className="empty-icon" />
+              <p className="empty-text">No hay notificaciones</p>
+              <p className="empty-subtext">Te notificaremos cuando haya algo nuevo</p>
+            </div>
+          ) : (
+            notificacionesOrdenadas.map((n, index) => (
+              <div
+                key={n.id}
+                className={`notif-card notif-type-${(n.etiqueta || "").toLowerCase()} ${!n.estado ? "notif-unread" : "notif-read"}`}
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <div className="notif-card-left">
+                  <div className={`notif-icon-container notif-icon-type-${(n.etiqueta || "").toLowerCase()}`}>
+                    {getIconoPorTipo(n.etiqueta)}
+                  </div>
+                  <div className="notif-content">
+                    <div className="notif-header-row">
+                      <h3 className="notif-card-title">{n.titulo}</h3>
+                      <span className={`notif-badge notif-badge-${(n.etiqueta || "").toLowerCase()}`}>
                         {n.etiqueta}
                       </span>
-                    </td>
-                    <td style={{ textAlign: "center" }}>
-                      <div 
-                        onClick={() => handleMarcarLeida(n.id)}
-                        style={{ cursor: "pointer" }}
-                      >
-                        {n.estado ? (
-                          <FaCheckCircle 
-                            color="#2ecc40" 
-                            title="Marcar como no leída"
-                          />
-                        ) : (
-                          <FaRegCircle
-                            color="#d60000"
-                            className="icono-marcar-leido"
-                            title="Marcar como leída"
-                          />
-                        )}
-                      </div>
-                    </td>
-                    <td style={{ textAlign: "center" }}>
-                      <FaTrash
-                        color="#d60000"
-                        className="icono-eliminar"
-                        onClick={() => {
-                          console.log("Attempting to delete notification with ID:", n.id);
-                          handleEliminar(n.id);
-                        }}
-                      />
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                    </div>
+                    <p className="notif-card-message">{n.mensaje}</p>
+                    {n.fecha_envio && (
+                      <p className="notif-card-date">
+                        <FaCalendar className="date-icon" />
+                        {new Date(n.fecha_envio).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="notif-card-actions">
+                  <button
+                    className="notif-action-btn notif-read-btn"
+                    onClick={() => handleMarcarLeida(n.id)}
+                    title={n.estado ? "Marcar como no leída" : "Marcar como leída"}
+                  >
+                    {n.estado ? (
+                      <FaCheckCircle className="action-icon read" />
+                    ) : (
+                      <FaRegCircle className="action-icon unread" />
+                    )}
+                  </button>
+                  <button
+                    className="notif-action-btn notif-delete-btn"
+                    onClick={() => handleEliminar(n.id)}
+                    title="Eliminar notificación"
+                  >
+                    <FaTrash className="action-icon delete" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
@@ -190,3 +200,4 @@ const Notificaciones = () => {
 };
 
 export default Notificaciones;
+

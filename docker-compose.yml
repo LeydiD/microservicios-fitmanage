@@ -6,13 +6,14 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: fitmanage
+      TZ: America/Bogota
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot" ]
       interval: 10s
       timeout: 40s
       retries: 10
@@ -26,6 +27,8 @@ services:
     restart: always
     env_file:
       - ./usuarios-service/.env
+    environment:
+      - TZ=America/Bogota
     ports:
       - "4001:4001"
     depends_on:
@@ -40,6 +43,8 @@ services:
     restart: always
     env_file:
       - ./afiliaciones-service/.env
+    environment:
+      - TZ=America/Bogota
     ports:
       - "4002:4002"
     depends_on:
@@ -54,6 +59,8 @@ services:
     restart: always
     env_file:
       - ./asistencias-service/.env
+    environment:
+      - TZ=America/Bogota
     ports:
       - "4003:4003"
     depends_on:
@@ -68,6 +75,8 @@ services:
     restart: always
     env_file:
       - ./notificaciones-service/.env
+    environment:
+      - TZ=America/Bogota
     ports:
       - "4005:4005"
     depends_on:
@@ -82,6 +91,8 @@ services:
     restart: always
     env_file:
       - ./rutinas-service/.env
+    environment:
+      - TZ=America/Bogota
     ports:
       - "4004:4004"
     depends_on:
