@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./EnviarNotificacion.css";
-import { crearNotificacion } from "../../../api/NotificacionApi";
+import { crearNotificacion } from "../../../api/NotificacionApi.js";
 
 const EnviarNotificacion = () => {
   const [asunto, setAsunto] = useState("");

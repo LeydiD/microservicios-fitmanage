@@ -1,5 +1,5 @@
 const API_URL = import.meta.env.VITE_BACKEND_URL;
-const API_URL_NOTIFICACIONES = `${API_URL}/notificaciones`;
+const API_URL_NOTIFICACIONES = `${API_URL}/notificaciones/notificaciones`;
 
 import axios from "axios";
 
